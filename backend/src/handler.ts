@@ -4,7 +4,7 @@ import { DynamoDBDocumentClient } from "@aws-sdk/lib-dynamodb";
 import { SeasoningRepository } from "./repository/seasoningRepository";
 import { SeasoningService } from "./services/seasoningService";
 import { getUserId } from "./auth/getUserId";
-import { ApiError } from "./errors/apiError";
+import { ApiError, badRequest } from "./errors/apiError";
 
 const dynamoClient = DynamoDBDocumentClient.from(new DynamoDBClient({}), {
   marshallOptions: { removeUndefinedValues: true },
@@ -34,6 +34,14 @@ function noBody(statusCode: number): APIGatewayProxyResult {
   return { statusCode, headers: corsHeaders(), body: "" };
 }
 
+function parseJsonBody(body: string | null): any {
+  try {
+    return JSON.parse(body ?? "{}");
+  } catch {
+    throw badRequest("request body must be valid JSON");
+  }
+}
+
 function errorResponse(error: unknown): APIGatewayProxyResult {
   if (error instanceof ApiError) {
     return json(error.statusCode, { error: { code: error.code, message: error.message } });
@@ -61,13 +69,13 @@ export async function handler(
     }
 
     if (event.httpMethod === "POST" && !id) {
-      const input = JSON.parse(event.body ?? "{}");
+      const input = parseJsonBody(event.body);
       const created = await service.create(userId, input);
       return json(201, created);
     }
 
     if (event.httpMethod === "PATCH" && id) {
-      const patch = JSON.parse(event.body ?? "{}");
+      const patch = parseJsonBody(event.body);
       const updated = await service.update(userId, id, patch);
       return json(200, updated);
     }

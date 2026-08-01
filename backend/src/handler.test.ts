@@ -82,4 +82,14 @@ describe("handler", () => {
     expect(result.statusCode).toBe(404);
     expect(result.headers?.["Access-Control-Allow-Origin"]).toBeDefined();
   });
+
+  it("returns 400 with CORS headers for a malformed JSON body", async () => {
+    const result = await handler(
+      baseEvent({ httpMethod: "POST", body: "{not valid json" })
+    );
+
+    expect(result.statusCode).toBe(400);
+    expect(result.headers?.["Access-Control-Allow-Origin"]).toBeDefined();
+    expect(JSON.parse(result.body).error.code).toBe("VALIDATION_ERROR");
+  });
 });
