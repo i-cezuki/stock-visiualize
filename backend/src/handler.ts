@@ -35,11 +35,16 @@ function noBody(statusCode: number): APIGatewayProxyResult {
 }
 
 function parseJsonBody(body: string | null): any {
+  let parsed: unknown;
   try {
-    return JSON.parse(body ?? "{}");
+    parsed = JSON.parse(body ?? "{}");
   } catch {
     throw badRequest("request body must be valid JSON");
   }
+  if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) {
+    throw badRequest("request body must be a JSON object");
+  }
+  return parsed;
 }
 
 function errorResponse(error: unknown): APIGatewayProxyResult {

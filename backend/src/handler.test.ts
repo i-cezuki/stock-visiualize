@@ -92,4 +92,12 @@ describe("handler", () => {
     expect(result.headers?.["Access-Control-Allow-Origin"]).toBeDefined();
     expect(JSON.parse(result.body).error.code).toBe("VALIDATION_ERROR");
   });
+
+  it("returns 400 for a JSON body that is not an object", async () => {
+    const result = await handler(baseEvent({ httpMethod: "POST", body: "null" }));
+
+    expect(result.statusCode).toBe(400);
+    expect(result.headers?.["Access-Control-Allow-Origin"]).toBeDefined();
+    expect(JSON.parse(result.body).error.code).toBe("VALIDATION_ERROR");
+  });
 });
