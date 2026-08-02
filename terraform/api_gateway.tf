@@ -115,3 +115,117 @@ resource "aws_lambda_permission" "api_gateway" {
   principal     = "apigateway.amazonaws.com"
   source_arn    = "${aws_api_gateway_rest_api.this.execution_arn}/*/*"
 }
+
+locals {
+  cors_resources = {
+    seasonings     = aws_api_gateway_resource.seasonings.id
+    seasoning_item = aws_api_gateway_resource.seasoning_item.id
+  }
+}
+
+resource "aws_api_gateway_method" "options" {
+  for_each      = local.cors_resources
+  rest_api_id   = aws_api_gateway_rest_api.this.id
+  resource_id   = each.value
+  http_method   = "OPTIONS"
+  authorization = "NONE"
+}
+
+resource "aws_api_gateway_integration" "options" {
+  for_each    = local.cors_resources
+  rest_api_id = aws_api_gateway_rest_api.this.id
+  resource_id = each.value
+  http_method = aws_api_gateway_method.options[each.key].http_method
+  type        = "MOCK"
+
+  request_templates = {
+    "application/json" = "{\"statusCode\": 200}"
+  }
+}
+
+resource "aws_api_gateway_method_response" "options" {
+  for_each    = local.cors_resources
+  rest_api_id = aws_api_gateway_rest_api.this.id
+  resource_id = each.value
+  http_method = aws_api_gateway_method.options[each.key].http_method
+  status_code = "200"
+
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Headers" = true
+    "method.response.header.Access-Control-Allow-Methods" = true
+    "method.response.header.Access-Control-Allow-Origin"  = true
+  }
+}
+
+resource "aws_api_gateway_integration_response" "options" {
+  for_each    = local.cors_resources
+  rest_api_id = aws_api_gateway_rest_api.this.id
+  resource_id = each.value
+  http_method = aws_api_gateway_method.options[each.key].http_method
+  status_code = aws_api_gateway_method_response.options[each.key].status_code
+
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Headers" = "'Authorization,Content-Type'"
+    "method.response.header.Access-Control-Allow-Methods" = "'GET,POST,PATCH,DELETE,OPTIONS'"
+    "method.response.header.Access-Control-Allow-Origin"  = "'${var.allowed_origin}'"
+  }
+
+  depends_on = [aws_api_gateway_integration.options]
+}
+
+resource "aws_api_gateway_gateway_response" "default_4xx" {
+  rest_api_id   = aws_api_gateway_rest_api.this.id
+  response_type = "DEFAULT_4XX"
+
+  response_parameters = {
+    "gatewayresponse.header.Access-Control-Allow-Origin"  = "'${var.allowed_origin}'"
+    "gatewayresponse.header.Access-Control-Allow-Headers" = "'Authorization,Content-Type'"
+  }
+}
+
+resource "aws_api_gateway_gateway_response" "default_5xx" {
+  rest_api_id   = aws_api_gateway_rest_api.this.id
+  response_type = "DEFAULT_5XX"
+
+  response_parameters = {
+    "gatewayresponse.header.Access-Control-Allow-Origin"  = "'${var.allowed_origin}'"
+    "gatewayresponse.header.Access-Control-Allow-Headers" = "'Authorization,Content-Type'"
+  }
+}
+
+resource "aws_api_gateway_deployment" "this" {
+  rest_api_id = aws_api_gateway_rest_api.this.id
+
+  triggers = {
+    redeployment = sha1(jsonencode([
+      aws_api_gateway_resource.seasonings.id,
+      aws_api_gateway_resource.seasoning_item.id,
+      aws_api_gateway_method.list_seasonings.id,
+      aws_api_gateway_method.create_seasoning.id,
+      aws_api_gateway_method.update_seasoning.id,
+      aws_api_gateway_method.delete_seasoning.id,
+      aws_api_gateway_integration.list_seasonings.id,
+      aws_api_gateway_integration.create_seasoning.id,
+      aws_api_gateway_integration.update_seasoning.id,
+      aws_api_gateway_integration.delete_seasoning.id,
+    ]))
+  }
+
+  lifecycle {
+    create_before_destroy = true
+  }
+
+  depends_on = [
+    aws_api_gateway_integration.list_seasonings,
+    aws_api_gateway_integration.create_seasoning,
+    aws_api_gateway_integration.update_seasoning,
+    aws_api_gateway_integration.delete_seasoning,
+    aws_api_gateway_integration.options,
+  ]
+}
+
+resource "aws_api_gateway_stage" "this" {
+  deployment_id = aws_api_gateway_deployment.this.id
+  rest_api_id   = aws_api_gateway_rest_api.this.id
+  stage_name    = var.environment
+}
