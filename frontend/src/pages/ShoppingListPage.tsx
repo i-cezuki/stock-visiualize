@@ -3,22 +3,27 @@ import { Link } from "react-router-dom";
 import { useSeasonings } from "../hooks/useSeasonings";
 import { useUpdateSeasoning } from "../hooks/useUpdateSeasoning";
 import { ApiError } from "../api/client";
+import { AMOUNT_LEVEL_LABELS } from "../types/seasoning";
 
 export default function ShoppingListPage() {
   const { data, isLoading } = useSeasonings();
   const updateSeasoning = useUpdateSeasoning();
   const [error, setError] = useState<string | null>(null);
+  const [pendingId, setPendingId] = useState<string | null>(null);
 
   const shoppingList = data?.filter((s) => s.needsPurchase) ?? [];
 
   async function handlePurchased(id: string) {
     setError(null);
+    setPendingId(id);
     try {
       await updateSeasoning.mutateAsync({ id, patch: { needsPurchase: false, amountLevel: 100 } });
     } catch (err) {
       setError(
         err instanceof ApiError ? err.message : "更新に失敗しました。もう一度お試しください"
       );
+    } finally {
+      setPendingId(null);
     }
   }
 
@@ -44,14 +49,15 @@ export default function ShoppingListPage() {
           <li key={seasoning.id} className="flex items-center gap-3 rounded-xl bg-white px-4 py-3 shadow-sm dark:bg-stone-800">
             <input
               type="checkbox"
+              checked={false}
               onChange={() => handlePurchased(seasoning.id)}
-              disabled={updateSeasoning.isPending}
+              disabled={pendingId === seasoning.id}
               className="h-5 w-5"
               aria-label={`${seasoning.name} を購入済みにする`}
             />
             <span className="flex-1">{seasoning.name}</span>
             <span className="text-xs text-stone-500 dark:text-stone-400">
-              {seasoning.amountLevel === 0 ? "なし" : `${seasoning.amountLevel}%`}
+              {AMOUNT_LEVEL_LABELS[seasoning.amountLevel]}
             </span>
           </li>
         ))}
