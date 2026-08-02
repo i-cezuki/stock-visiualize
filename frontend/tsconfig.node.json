@@ -6,7 +6,8 @@
     "skipLibCheck": true,
     "esModuleInterop": true,
     "composite": true,
-    "outDir": "./dist"
+    "outDir": "./.ts-out",
+    "tsBuildInfoFile": "./.ts-out/tsconfig.node.tsbuildinfo"
   },
   "include": ["vite.config.ts", "vitest.config.ts"]
 }
