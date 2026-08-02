@@ -7,7 +7,13 @@ const forgotPassword = vi.fn();
 const confirmPassword = vi.fn();
 
 vi.mock("amazon-cognito-identity-js", () => {
+  let shouldThrowOnConstruct = false;
   class CognitoUserPool {
+    constructor() {
+      if (shouldThrowOnConstruct) {
+        throw new Error("Both UserPoolId and ClientId are required.");
+      }
+    }
     getCurrentUser() {
       return mockCurrentUser;
     }
@@ -28,6 +34,9 @@ vi.mock("amazon-cognito-identity-js", () => {
     __setMockCurrentUser: (user: InstanceType<typeof CognitoUser> | null) => {
       mockCurrentUser = user;
     },
+    __setShouldThrowOnConstruct: (value: boolean) => {
+      shouldThrowOnConstruct = value;
+    },
   };
 });
 
@@ -38,6 +47,25 @@ describe("cognitoAuth", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     (cognitoLib as unknown as { __setMockCurrentUser: (u: unknown) => void }).__setMockCurrentUser(null);
+    // Always reset, regardless of whether the previous test's assertions
+    // passed -- otherwise a failing assertion in the "construction throws"
+    // test below would leave every later test throwing too, masking their
+    // real results behind an unrelated cascade failure.
+    (cognitoLib as unknown as { __setShouldThrowOnConstruct: (v: boolean) => void }).__setShouldThrowOnConstruct(
+      false
+    );
+  });
+
+  it("getCurrentIdToken resolves null instead of rejecting when CognitoUserPool construction fails", async () => {
+    // Runs first (before any other test's call to getUserPool() caches a
+    // successfully-constructed pool as cognitoAuth.ts's module-level
+    // singleton) so this exercises a genuine first-construction failure,
+    // matching what happens in a real app with no .env configured.
+    (cognitoLib as unknown as { __setShouldThrowOnConstruct: (v: boolean) => void }).__setShouldThrowOnConstruct(
+      true
+    );
+
+    await expect(getCurrentIdToken()).resolves.toBeNull();
   });
 
   it("login resolves tokens on success", async () => {
