@@ -3,6 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useSeasonings } from "../hooks/useSeasonings";
 import { useUpdateSeasoning } from "../hooks/useUpdateSeasoning";
 import { useDeleteSeasoning } from "../hooks/useDeleteSeasoning";
+import { useOnlineStatus } from "../hooks/useOnlineStatus";
 import { ConfirmDialog } from "../components/ConfirmDialog";
 import { ApiError } from "../api/client";
 import { CATEGORIES, type Category } from "../types/seasoning";
@@ -13,6 +14,7 @@ export default function EditSeasoningPage() {
   const { data: seasonings } = useSeasonings();
   const updateSeasoning = useUpdateSeasoning();
   const deleteSeasoning = useDeleteSeasoning();
+  const isOnline = useOnlineStatus();
   const [showConfirm, setShowConfirm] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -54,6 +56,11 @@ export default function EditSeasoningPage() {
     <div className="flex flex-col gap-4">
       <h1 className="text-xl font-bold">編集</h1>
       {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
+      {!isOnline && (
+        <p className="text-sm text-stone-500 dark:text-stone-400">
+          オフラインです。保存・削除はオンライン時のみ行えます
+        </p>
+      )}
       <form onSubmit={handleSubmit} className="flex flex-col gap-3">
         <input
           required
@@ -75,7 +82,7 @@ export default function EditSeasoningPage() {
         </select>
         <button
           type="submit"
-          disabled={updateSeasoning.isPending}
+          disabled={updateSeasoning.isPending || !isOnline}
           className="rounded-xl bg-stone-800 px-4 py-3 font-semibold text-white disabled:opacity-50 dark:bg-stone-100 dark:text-stone-900"
         >
           保存
@@ -83,7 +90,8 @@ export default function EditSeasoningPage() {
       </form>
       <button
         onClick={() => setShowConfirm(true)}
-        className="rounded-xl border border-red-600 px-4 py-3 font-semibold text-red-600"
+        disabled={!isOnline}
+        className="rounded-xl border border-red-600 px-4 py-3 font-semibold text-red-600 disabled:opacity-50"
       >
         削除
       </button>

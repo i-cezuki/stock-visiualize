@@ -22,7 +22,10 @@ export default function HomePage() {
 
       {isLoading && <p className="text-center text-stone-500">読み込み中…</p>}
 
-      {isError && (
+      {/* Only show the load-failed/retry block when there's no cached data to
+          fall back on -- a failed background refetch with a still-valid
+          cache should just keep showing the cards, not also show an error. */}
+      {isError && !data && (
         <div className="flex flex-col items-center gap-2 py-8">
           <p className="text-stone-500">読み込みに失敗しました</p>
           <button onClick={() => refetch()} className="rounded-xl bg-stone-800 px-4 py-2 text-white dark:bg-stone-100 dark:text-stone-900">

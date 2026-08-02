@@ -2,12 +2,14 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useSeasonings } from "../hooks/useSeasonings";
 import { useUpdateSeasoning } from "../hooks/useUpdateSeasoning";
+import { useOnlineStatus } from "../hooks/useOnlineStatus";
 import { ApiError } from "../api/client";
 import { AMOUNT_LEVEL_LABELS } from "../types/seasoning";
 
 export default function ShoppingListPage() {
   const { data, isLoading } = useSeasonings();
   const updateSeasoning = useUpdateSeasoning();
+  const isOnline = useOnlineStatus();
   const [error, setError] = useState<string | null>(null);
   const [pendingId, setPendingId] = useState<string | null>(null);
 
@@ -37,6 +39,11 @@ export default function ShoppingListPage() {
       </div>
 
       {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
+      {!isOnline && (
+        <p className="text-sm text-stone-500 dark:text-stone-400">
+          オフラインです。購入済みの更新はオンライン時のみ行えます
+        </p>
+      )}
 
       {isLoading && <p className="text-center text-stone-500">読み込み中…</p>}
 
@@ -51,7 +58,7 @@ export default function ShoppingListPage() {
               type="checkbox"
               checked={false}
               onChange={() => handlePurchased(seasoning.id)}
-              disabled={pendingId === seasoning.id}
+              disabled={pendingId === seasoning.id || !isOnline}
               className="h-5 w-5"
               aria-label={`${seasoning.name} を購入済みにする`}
             />

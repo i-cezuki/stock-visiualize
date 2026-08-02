@@ -1,12 +1,14 @@
 import { useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { useCreateSeasoning } from "../hooks/useCreateSeasoning";
+import { useOnlineStatus } from "../hooks/useOnlineStatus";
 import { ApiError } from "../api/client";
 import { CATEGORIES, type Category } from "../types/seasoning";
 
 export default function AddSeasoningPage() {
   const navigate = useNavigate();
   const createSeasoning = useCreateSeasoning();
+  const isOnline = useOnlineStatus();
   const [name, setName] = useState("");
   const [category, setCategory] = useState<Category>(CATEGORIES[0]);
   const [error, setError] = useState<string | null>(null);
@@ -30,6 +32,11 @@ export default function AddSeasoningPage() {
     <div className="flex flex-col gap-4">
       <h1 className="text-xl font-bold">調味料を追加</h1>
       {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
+      {!isOnline && (
+        <p className="text-sm text-stone-500 dark:text-stone-400">
+          オフラインです。追加はオンライン時のみ行えます
+        </p>
+      )}
       <form onSubmit={handleSubmit} className="flex flex-col gap-3">
         <input
           required
@@ -52,7 +59,7 @@ export default function AddSeasoningPage() {
         </select>
         <button
           type="submit"
-          disabled={createSeasoning.isPending}
+          disabled={createSeasoning.isPending || !isOnline}
           className="rounded-xl bg-stone-800 px-4 py-3 font-semibold text-white disabled:opacity-50 dark:bg-stone-100 dark:text-stone-900"
         >
           追加

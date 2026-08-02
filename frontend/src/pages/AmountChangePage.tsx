@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import { useSeasonings } from "../hooks/useSeasonings";
 import { useUpdateSeasoning } from "../hooks/useUpdateSeasoning";
+import { useOnlineStatus } from "../hooks/useOnlineStatus";
 import { ApiError } from "../api/client";
 import { AMOUNT_LEVELS, AMOUNT_LEVEL_LABELS, type AmountLevel } from "../types/seasoning";
 
@@ -10,6 +11,7 @@ export default function AmountChangePage() {
   const navigate = useNavigate();
   const { data: seasonings } = useSeasonings();
   const updateSeasoning = useUpdateSeasoning();
+  const isOnline = useOnlineStatus();
   const [error, setError] = useState<string | null>(null);
 
   const seasoning = seasonings?.find((s) => s.id === id);
@@ -34,6 +36,11 @@ export default function AmountChangePage() {
     <div className="flex flex-col gap-4">
       <h1 className="text-xl font-bold">{seasoning.name}</h1>
       {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
+      {!isOnline && (
+        <p className="text-sm text-stone-500 dark:text-stone-400">
+          オフラインです。残量変更はオンライン時のみ行えます
+        </p>
+      )}
       <div className="flex flex-col gap-2">
         {AMOUNT_LEVELS.slice()
           .reverse()
@@ -41,7 +48,7 @@ export default function AmountChangePage() {
             <button
               key={level}
               onClick={() => handleSelect(level)}
-              disabled={updateSeasoning.isPending}
+              disabled={updateSeasoning.isPending || !isOnline}
               className={`flex items-center gap-3 rounded-xl border px-4 py-3 text-left disabled:opacity-50 ${
                 seasoning.amountLevel === level
                   ? "border-stone-800 bg-stone-100 dark:border-stone-100 dark:bg-stone-800"
