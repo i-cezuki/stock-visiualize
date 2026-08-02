@@ -201,8 +201,15 @@ resource "aws_api_gateway_deployment" "this" {
   # forces a redeployment. A resource-ID-only trigger misses edits to arguments
   # (e.g. response_parameters content) that don't change the resource's ID,
   # which would otherwise leave the live stage silently serving stale config.
+  # var.allowed_origin is included separately because its value is interpolated
+  # into this file's CORS headers but re-applying with a different `-var` (the
+  # documented prod cutover in variables.tf's description) doesn't change this
+  # file's own bytes, so filesha1() alone wouldn't notice that change.
   triggers = {
-    redeployment = filesha1("${path.module}/api_gateway.tf")
+    redeployment = sha1(join(",", [
+      filesha1("${path.module}/api_gateway.tf"),
+      var.allowed_origin,
+    ]))
   }
 
   lifecycle {
