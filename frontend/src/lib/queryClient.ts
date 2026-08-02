@@ -17,12 +17,18 @@ export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       staleTime: 30_000,
-      retry: 1,
+      retry: (failureCount, error) =>
+        !(error instanceof ApiError && error.statusCode === 401) && failureCount < 1,
     },
   },
   queryCache: new QueryCache({ onError: handleAuthError }),
   mutationCache: new MutationCache({ onError: handleAuthError }),
 });
+
+// Bump this whenever the persisted Seasoning shape changes, so a long-offline
+// user's stale-shaped cache is discarded instead of feeding old data into new
+// components before the first successful refetch overwrites it.
+const CACHE_VERSION = "v1";
 
 if (typeof window !== "undefined") {
   const persister = createSyncStoragePersister({
@@ -34,5 +40,6 @@ if (typeof window !== "undefined") {
     queryClient,
     persister,
     maxAge: Infinity,
+    buster: CACHE_VERSION,
   });
 }
