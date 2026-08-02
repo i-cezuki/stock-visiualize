@@ -1,3 +1,8 @@
+# Only `ulid` is staged in dist/node_modules (see backend/package.json's build
+# script) — @aws-sdk/client-dynamodb and @aws-sdk/lib-dynamodb are not zipped
+# because the nodejs22.x managed runtime bundles the AWS SDK v3. If AWS ever
+# ships a runtime SDK version incompatible with backend/package.json's pinned
+# ^3.632.0, that mismatch would only surface at invoke time, not here.
 data "archive_file" "backend" {
   type        = "zip"
   source_dir  = "${path.module}/../backend/dist"

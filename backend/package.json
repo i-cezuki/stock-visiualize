@@ -6,7 +6,7 @@
   "scripts": {
     "test": "vitest run",
     "test:watch": "vitest",
-    "build": "tsc -p tsconfig.json && rm -rf dist/node_modules && mkdir -p dist/node_modules && cp -r node_modules/ulid dist/node_modules/ulid"
+    "build": "tsc -p tsconfig.build.json && rm -rf dist/node_modules && mkdir -p dist/node_modules && cp -r node_modules/ulid dist/node_modules/ulid"
   },
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.632.0",
