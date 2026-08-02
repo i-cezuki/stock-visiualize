@@ -17,6 +17,12 @@ export default function LoginPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [infoMessage, setInfoMessage] = useState<string | null>(null);
 
+  function switchView(nextView: View) {
+    setError(null);
+    setInfoMessage(null);
+    setView(nextView);
+  }
+
   async function handleSignIn(event: FormEvent) {
     event.preventDefault();
     setError(null);
@@ -62,7 +68,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="mx-auto flex min-h-screen max-w-sm flex-col justify-center gap-6 px-6">
+    <div className="mx-auto flex min-h-screen max-w-sm flex-col justify-center gap-6 bg-[#F5EFE6] px-6 text-stone-800 dark:bg-stone-900 dark:text-stone-100">
       <h1 className="text-center text-2xl font-bold">調味料在庫</h1>
 
       {infoMessage && <p className="text-center text-sm text-emerald-700 dark:text-emerald-400">{infoMessage}</p>}
@@ -95,7 +101,7 @@ export default function LoginPage() {
           </button>
           <button
             type="button"
-            onClick={() => setView("request-reset")}
+            onClick={() => switchView("request-reset")}
             className="text-sm text-stone-500 underline dark:text-stone-400"
           >
             パスワードを忘れた場合
@@ -120,7 +126,7 @@ export default function LoginPage() {
           >
             確認コードを送信
           </button>
-          <button type="button" onClick={() => setView("sign-in")} className="text-sm text-stone-500 underline dark:text-stone-400">
+          <button type="button" onClick={() => switchView("sign-in")} className="text-sm text-stone-500 underline dark:text-stone-400">
             ログインに戻る
           </button>
         </form>
