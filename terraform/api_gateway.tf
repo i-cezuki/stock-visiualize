@@ -196,19 +196,13 @@ resource "aws_api_gateway_gateway_response" "default_5xx" {
 resource "aws_api_gateway_deployment" "this" {
   rest_api_id = aws_api_gateway_rest_api.this.id
 
+  # Hashing the whole file (not just a hand-picked list of resource IDs) means
+  # ANY change in here — a new route, a CORS header value, a gateway response —
+  # forces a redeployment. A resource-ID-only trigger misses edits to arguments
+  # (e.g. response_parameters content) that don't change the resource's ID,
+  # which would otherwise leave the live stage silently serving stale config.
   triggers = {
-    redeployment = sha1(jsonencode([
-      aws_api_gateway_resource.seasonings.id,
-      aws_api_gateway_resource.seasoning_item.id,
-      aws_api_gateway_method.list_seasonings.id,
-      aws_api_gateway_method.create_seasoning.id,
-      aws_api_gateway_method.update_seasoning.id,
-      aws_api_gateway_method.delete_seasoning.id,
-      aws_api_gateway_integration.list_seasonings.id,
-      aws_api_gateway_integration.create_seasoning.id,
-      aws_api_gateway_integration.update_seasoning.id,
-      aws_api_gateway_integration.delete_seasoning.id,
-    ]))
+    redeployment = filesha1("${path.module}/api_gateway.tf")
   }
 
   lifecycle {
