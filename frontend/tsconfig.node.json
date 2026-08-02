@@ -1,0 +1,13 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "composite": true,
+    "outDir": "./.ts-out",
+    "tsBuildInfoFile": "./.ts-out/tsconfig.node.tsbuildinfo"
+  },
+  "include": ["vite.config.ts", "vitest.config.ts"]
+}
