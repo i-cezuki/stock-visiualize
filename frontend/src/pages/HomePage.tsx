@@ -12,7 +12,7 @@ export default function HomePage() {
   }
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-4 pb-24">
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-bold">調味料</h1>
         <Link to="/shopping-list" className="text-sm underline">
@@ -38,7 +38,7 @@ export default function HomePage() {
       )}
 
       {data && data.length > 0 && (
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
           {data.map((seasoning) => (
             <SeasoningCard key={seasoning.id} seasoning={seasoning} onClick={handleCardClick} />
           ))}

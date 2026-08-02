@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { useCreateSeasoning } from "../hooks/useCreateSeasoning";
+import { ApiError } from "../api/client";
 import { CATEGORIES, type Category } from "../types/seasoning";
 
 export default function AddSeasoningPage() {
@@ -16,8 +17,12 @@ export default function AddSeasoningPage() {
     try {
       await createSeasoning.mutateAsync({ name, category });
       navigate("/", { replace: true });
-    } catch {
-      setError("追加に失敗しました。入力内容を確認してください");
+    } catch (err) {
+      setError(
+        err instanceof ApiError
+          ? err.message
+          : "追加に失敗しました。入力内容を確認してください"
+      );
     }
   }
 
