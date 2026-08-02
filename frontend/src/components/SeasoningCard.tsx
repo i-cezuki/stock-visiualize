@@ -11,14 +11,15 @@ export function SeasoningCard({ seasoning, onClick }: SeasoningCardProps) {
     <button
       type="button"
       onClick={() => onClick(seasoning)}
-      aria-label={seasoning.name}
+      aria-label={
+        seasoning.needsPurchase
+          ? `${seasoning.name}（買い物リストに追加済み）`
+          : seasoning.name
+      }
       className="relative flex flex-col items-center gap-2 rounded-2xl bg-white p-4 text-left shadow-sm ring-1 ring-stone-200 transition hover:shadow-md active:scale-[0.98] dark:bg-stone-800 dark:ring-stone-700"
     >
       {seasoning.needsPurchase && (
-        <span
-          aria-label="買い物リストに追加済み"
-          className="absolute right-2 top-2 text-lg"
-        >
+        <span aria-hidden="true" className="absolute right-2 top-2 text-lg">
           🛒
         </span>
       )}

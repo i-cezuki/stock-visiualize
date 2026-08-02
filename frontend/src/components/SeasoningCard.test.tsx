@@ -26,12 +26,14 @@ describe("SeasoningCard", () => {
     expect(screen.getByText("75%")).toBeInTheDocument();
   });
 
-  it("shows a shopping badge only when needsPurchase is true", () => {
+  it("announces shopping-list status in the card's accessible name only when needsPurchase is true", () => {
     const { rerender } = render(<SeasoningCard seasoning={sample} onClick={() => {}} />);
-    expect(screen.queryByLabelText("買い物リストに追加済み")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "醤油" })).toBeInTheDocument();
 
     rerender(<SeasoningCard seasoning={{ ...sample, needsPurchase: true }} onClick={() => {}} />);
-    expect(screen.getByLabelText("買い物リストに追加済み")).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "醤油（買い物リストに追加済み）" })
+    ).toBeInTheDocument();
   });
 
   it("calls onClick when the card is tapped", async () => {
