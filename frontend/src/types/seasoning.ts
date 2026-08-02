@@ -40,11 +40,3 @@ export const AMOUNT_LEVEL_LABELS: Record<AmountLevel, string> = {
   25: "少ない",
   0: "なし",
 };
-
-export const CATEGORY_EMOJI: Record<Category, string> = {
-  液体: "🧴",
-  チューブ: "🧃",
-  瓶: "🫙",
-  粉: "🧂",
-  スパイス: "🌶️",
-};
