@@ -1,7 +1,15 @@
+import { QueryClientProvider } from "@tanstack/react-query";
+import { RouterProvider } from "react-router-dom";
+import { queryClient } from "./lib/queryClient";
+import { AuthProvider } from "./auth/AuthContext";
+import { router } from "./router";
+
 export default function App() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[#F5EFE6] text-stone-800 dark:bg-stone-900 dark:text-stone-100">
-      <p>Seasoning Stock</p>
-    </div>
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <RouterProvider router={router} />
+      </AuthProvider>
+    </QueryClientProvider>
   );
 }
