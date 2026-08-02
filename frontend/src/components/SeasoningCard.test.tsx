@@ -18,11 +18,11 @@ const sample: Seasoning = {
 };
 
 describe("SeasoningCard", () => {
-  it("renders the name, category emoji, and amount", () => {
+  it("renders the name, a category icon, and the amount", () => {
     render(<SeasoningCard seasoning={sample} onClick={() => {}} />);
 
     expect(screen.getByText("醤油")).toBeInTheDocument();
-    expect(screen.getByText("🧴")).toBeInTheDocument();
+    expect(screen.getByTestId("seasoning-icon")).toHaveAttribute("data-shape", "bottle");
     expect(screen.getByText("75%")).toBeInTheDocument();
   });
 
