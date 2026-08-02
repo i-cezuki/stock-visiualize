@@ -49,20 +49,29 @@ export function logout(): void {
   getUserPool().getCurrentUser()?.signOut();
 }
 
+// Never throws/rejects: its contract is "the current id token, or null if
+// there isn't one for any reason" -- including Cognito being unreachable or
+// unconfigured (e.g. no .env yet). A caller checking "am I logged in?" should
+// always get a definite answer, not a hung promise that leaves the app stuck
+// on a loading state forever.
 export function getCurrentIdToken(): Promise<string | null> {
   return new Promise((resolve) => {
-    const user = getUserPool().getCurrentUser();
-    if (!user) {
-      resolve(null);
-      return;
-    }
-    user.getSession((err: Error | null, session: CognitoUserSession | null) => {
-      if (err || !session || !session.isValid()) {
+    try {
+      const user = getUserPool().getCurrentUser();
+      if (!user) {
         resolve(null);
         return;
       }
-      resolve(session.getIdToken().getJwtToken());
-    });
+      user.getSession((err: Error | null, session: CognitoUserSession | null) => {
+        if (err || !session || !session.isValid()) {
+          resolve(null);
+          return;
+        }
+        resolve(session.getIdToken().getJwtToken());
+      });
+    } catch {
+      resolve(null);
+    }
   });
 }
 

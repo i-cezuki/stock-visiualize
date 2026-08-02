@@ -15,10 +15,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    getCurrentIdToken().then((token) => {
-      setIsAuthenticated(token !== null);
-      setIsLoading(false);
-    });
+    getCurrentIdToken()
+      .then((token) => {
+        setIsAuthenticated(token !== null);
+      })
+      .catch(() => {
+        // getCurrentIdToken is documented to never reject, but defend
+        // against it anyway: an uncaught rejection here would leave
+        // isLoading stuck true forever, showing a permanent blank page
+        // instead of the login screen.
+        setIsAuthenticated(false);
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
   }, []);
 
   async function login(email: string, password: string) {
