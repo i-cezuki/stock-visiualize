@@ -4,6 +4,7 @@ import { useSeasonings } from "../hooks/useSeasonings";
 import { useUpdateSeasoning } from "../hooks/useUpdateSeasoning";
 import { useDeleteSeasoning } from "../hooks/useDeleteSeasoning";
 import { ConfirmDialog } from "../components/ConfirmDialog";
+import { ApiError } from "../api/client";
 import { CATEGORIES, type Category } from "../types/seasoning";
 
 export default function EditSeasoningPage() {
@@ -13,6 +14,7 @@ export default function EditSeasoningPage() {
   const updateSeasoning = useUpdateSeasoning();
   const deleteSeasoning = useDeleteSeasoning();
   const [showConfirm, setShowConfirm] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const seasoning = seasonings?.find((s) => s.id === id);
   const [name, setName] = useState(seasoning?.name ?? "");
@@ -24,18 +26,34 @@ export default function EditSeasoningPage() {
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
-    await updateSeasoning.mutateAsync({ id: seasoning!.id, patch: { name, category } });
-    navigate("/", { replace: true });
+    setError(null);
+    try {
+      await updateSeasoning.mutateAsync({ id: seasoning!.id, patch: { name, category } });
+      navigate("/", { replace: true });
+    } catch (err) {
+      setError(
+        err instanceof ApiError ? err.message : "保存に失敗しました。もう一度お試しください"
+      );
+    }
   }
 
   async function handleDelete() {
-    await deleteSeasoning.mutateAsync(seasoning!.id);
-    navigate("/", { replace: true });
+    setError(null);
+    try {
+      await deleteSeasoning.mutateAsync(seasoning!.id);
+      navigate("/", { replace: true });
+    } catch (err) {
+      setShowConfirm(false);
+      setError(
+        err instanceof ApiError ? err.message : "削除に失敗しました。もう一度お試しください"
+      );
+    }
   }
 
   return (
     <div className="flex flex-col gap-4">
       <h1 className="text-xl font-bold">編集</h1>
+      {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
       <form onSubmit={handleSubmit} className="flex flex-col gap-3">
         <input
           required

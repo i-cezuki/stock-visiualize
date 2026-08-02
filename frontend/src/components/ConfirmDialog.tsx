@@ -1,3 +1,5 @@
+import { useEffect } from "react";
+
 interface ConfirmDialogProps {
   message: string;
   onConfirm: () => void;
@@ -5,9 +7,28 @@ interface ConfirmDialogProps {
 }
 
 export function ConfirmDialog({ message, onConfirm, onCancel }: ConfirmDialogProps) {
+  useEffect(() => {
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        onCancel();
+      }
+    }
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [onCancel]);
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-6">
-      <div className="w-full max-w-xs rounded-2xl bg-white p-6 shadow-xl dark:bg-stone-800">
+    <div
+      role="presentation"
+      onClick={onCancel}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-6"
+    >
+      <div
+        role="dialog"
+        aria-modal="true"
+        onClick={(event) => event.stopPropagation()}
+        className="w-full max-w-xs rounded-2xl bg-white p-6 shadow-xl dark:bg-stone-800"
+      >
         <p className="mb-4 text-center">{message}</p>
         <div className="flex gap-3">
           <button

@@ -1,6 +1,8 @@
+import { useState } from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import { useSeasonings } from "../hooks/useSeasonings";
 import { useUpdateSeasoning } from "../hooks/useUpdateSeasoning";
+import { ApiError } from "../api/client";
 import { AMOUNT_LEVELS, AMOUNT_LEVEL_LABELS, type AmountLevel } from "../types/seasoning";
 
 export default function AmountChangePage() {
@@ -8,6 +10,7 @@ export default function AmountChangePage() {
   const navigate = useNavigate();
   const { data: seasonings } = useSeasonings();
   const updateSeasoning = useUpdateSeasoning();
+  const [error, setError] = useState<string | null>(null);
 
   const seasoning = seasonings?.find((s) => s.id === id);
 
@@ -16,13 +19,21 @@ export default function AmountChangePage() {
   }
 
   async function handleSelect(amountLevel: AmountLevel) {
-    await updateSeasoning.mutateAsync({ id: seasoning!.id, patch: { amountLevel } });
-    navigate("/", { replace: true });
+    setError(null);
+    try {
+      await updateSeasoning.mutateAsync({ id: seasoning!.id, patch: { amountLevel } });
+      navigate("/", { replace: true });
+    } catch (err) {
+      setError(
+        err instanceof ApiError ? err.message : "更新に失敗しました。もう一度お試しください"
+      );
+    }
   }
 
   return (
     <div className="flex flex-col gap-4">
       <h1 className="text-xl font-bold">{seasoning.name}</h1>
+      {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
       <div className="flex flex-col gap-2">
         {AMOUNT_LEVELS.slice()
           .reverse()
