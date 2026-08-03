@@ -27,3 +27,13 @@ output "dynamodb_table_name" {
   description = "DynamoDB table name (matches the Lambda's TABLE_NAME env var)"
   value       = aws_dynamodb_table.seasonings.name
 }
+
+output "cloudfront_distribution_id" {
+  description = "CloudFront distribution ID, for CI cache invalidation after a frontend deploy"
+  value       = aws_cloudfront_distribution.frontend.id
+}
+
+output "github_actions_deploy_role_arn" {
+  description = "IAM role ARN for GitHub Actions to assume via OIDC for frontend S3/CloudFront deploys"
+  value       = aws_iam_role.github_actions_deploy.arn
+}
