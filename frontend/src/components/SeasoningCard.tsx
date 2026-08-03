@@ -1,5 +1,6 @@
 import { AmountBar } from "./AmountBar";
-import { CATEGORY_EMOJI, type Seasoning } from "../types/seasoning";
+import { SeasoningIcon } from "./SeasoningIcon";
+import type { Seasoning } from "../types/seasoning";
 
 interface SeasoningCardProps {
   seasoning: Seasoning;
@@ -23,7 +24,7 @@ export function SeasoningCard({ seasoning, onClick }: SeasoningCardProps) {
           🛒
         </span>
       )}
-      <span className="text-3xl">{CATEGORY_EMOJI[seasoning.category]}</span>
+      <SeasoningIcon name={seasoning.name} category={seasoning.category} className="h-10 w-10" />
       <span className="font-semibold text-stone-800 dark:text-stone-100">{seasoning.name}</span>
       <AmountBar amountLevel={seasoning.amountLevel} color={seasoning.color} />
     </button>
