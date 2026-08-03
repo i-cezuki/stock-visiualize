@@ -4,6 +4,11 @@ variable "github_repo" {
   default     = "i-cezuki/stock-visiualize"
 }
 
+locals {
+  github_owner     = split("/", var.github_repo)[0]
+  github_repo_name = split("/", var.github_repo)[1]
+}
+
 resource "aws_iam_openid_connect_provider" "github_actions" {
   url             = "https://token.actions.githubusercontent.com"
   client_id_list  = ["sts.amazonaws.com"]
@@ -27,8 +32,11 @@ resource "aws_iam_role" "github_actions_deploy" {
             "token.actions.githubusercontent.com:aud" = "sts.amazonaws.com"
           }
           # Restrict to pushes to main only — PRs from forks can't assume this role.
+          # GitHub's sub claim includes each side's immutable numeric ID
+          # (repo:owner@ownerId/name@repoId:...), not just "owner/name", so
+          # both the owner and repo segments need their own wildcard suffix.
           StringLike = {
-            "token.actions.githubusercontent.com:sub" = "repo:${var.github_repo}:ref:refs/heads/main"
+            "token.actions.githubusercontent.com:sub" = "repo:${local.github_owner}*/${local.github_repo_name}*:ref:refs/heads/main"
           }
         }
       }
